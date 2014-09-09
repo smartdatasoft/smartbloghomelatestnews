@@ -4,6 +4,7 @@ if (!defined('_PS_VERSION_'))
  
 require_once (_PS_MODULE_DIR_.'smartblog/classes/SmartBlogPost.php');
 require_once (_PS_MODULE_DIR_.'smartblog/smartblog.php');
+
 class smartbloghomelatestnews extends Module {
     
      public function __construct(){
@@ -19,67 +20,69 @@ class smartbloghomelatestnews extends Module {
         $this->displayName = $this->l('SmartBlog Home Latest');
         $this->description = $this->l('The Most Powerfull Presta shop Blog  Module\'s tag - by smartdatasoft');
         $this->confirmUninstall = $this->l('Are you sure you want to delete your details ?');
-        }
+    }
         
      public function install(){
-                $langs = Language::getLanguages();
-                $id_lang = (int) Configuration::get('PS_LANG_DEFAULT');
-                 if (!parent::install() 
-				 || !$this->registerHook('displayHome')
-				 || !$this->registerHook('actionsbdeletepost')
-				 || !$this->registerHook('actionsbnewpost')
-				 || !$this->registerHook('actionsbupdatepost')
-				 || !$this->registerHook('actionsbtogglepost')
-				 )
+        $langs = Language::getLanguages();
+        $id_lang = (int) Configuration::get('PS_LANG_DEFAULT');
+         if (!parent::install() 
+		 || !$this->registerHook('displayHome')
+		 || !$this->registerHook('actionsbdeletepost')
+		 || !$this->registerHook('actionsbnewpost')
+		 || !$this->registerHook('actionsbupdatepost')
+		 || !$this->registerHook('actionsbtogglepost')
+		 )
             return false;
-                 Configuration::updateGlobalValue('smartshowhomepost',4);
-                 return true;
-            }
+         Configuration::updateGlobalValue('smartshowhomepost',4);
+         return true;
+    }
             
      public function uninstall() {
-	 $this->DeleteCache();
-            if (!parent::uninstall() || !Configuration::deleteByName('smartshowhomepost'))
-                 return false;
-            return true;
-                }
+	   $this->DeleteCache();
+        if (!parent::uninstall() || !Configuration::deleteByName('smartshowhomepost'))
+             return false;
+        return true;
+    }
+
      public function hookDisplayHome($params) {
          
                 if(Module::isInstalled('smartblog') != 1){
-                        $this->smarty->assign( array(
-                                  'smartmodname' => $this->name
-                         ));
-                        return $this->display(__FILE__, 'views/templates/front/install_required.tpl');
+                    $this->smarty->assign( array(
+                              'smartmodname' => $this->name
+                     ));
+                    return $this->display(__FILE__, 'views/templates/front/install_required.tpl');
                 }
                 else
                 {
-                            if (!$this->isCached('smartblog_latest_news.tpl', $this->getCacheId()))
-                                {
-                                    $view_data['posts'] = SmartBlogPost::GetPostLatestHome(Configuration::get('smartshowhomepost')); 
-                                    $this->smarty->assign( array(
-                                              'view_data'     	 => $view_data['posts']
-                                    ));
-                                }
-                            return $this->display(__FILE__, 'views/templates/front/smartblog_latest_news.tpl', $this->getCacheId());
+                    if (!$this->isCached('smartblog_latest_news.tpl', $this->getCacheId()))
+                        {
+                            $view_data['posts'] = SmartBlogPost::GetPostLatestHome(Configuration::get('smartshowhomepost')); 
+                            $this->smarty->assign( array(
+                                      'view_data'     	 => $view_data['posts'],
+                                      'smartshownoimg' => Configuration::get('smartshownoimg')
+                            ));
+                        }
+                    return $this->display(__FILE__, 'views/templates/front/smartblog_latest_news.tpl', $this->getCacheId());
                 }  
-            }
+    }
             
      public function getContent(){
-                $html = '';
-                if(Tools::isSubmit('save'.$this->name))
-                {
-                    Configuration::updateValue('smartshowhomepost', Tools::getvalue('smartshowhomepost'));
-                    $html = $this->displayConfirmation($this->l('The settings have been updated successfully.'));
-                    $helper = $this->SettingForm();
-                    $html .= $helper->generateForm($this->fields_form); 
-                    return $html;
-                }
-                else
-                {
-                   $helper = $this->SettingForm();
-                   $html .= $helper->generateForm($this->fields_form);
-                   return $html;
-                }
-            }
+        $html = '';
+        if(Tools::isSubmit('save'.$this->name))
+        {
+            Configuration::updateValue('smartshowhomepost', Tools::getvalue('smartshowhomepost'));
+            $html = $this->displayConfirmation($this->l('The settings have been updated successfully.'));
+            $helper = $this->SettingForm();
+            $html .= $helper->generateForm($this->fields_form); 
+            return $html;
+        }
+        else
+        {
+           $helper = $this->SettingForm();
+           $html .= $helper->generateForm($this->fields_form);
+           return $html;
+        }
+    }
             
      public function SettingForm() {
         $default_lang = (int) Configuration::get('PS_LANG_DEFAULT');
@@ -131,25 +134,30 @@ class smartbloghomelatestnews extends Module {
         
         $helper->fields_value['smartshowhomepost'] = Configuration::get('smartshowhomepost');
         return $helper;
-      }
+    }
+
 	public function DeleteCache()
-            {
-				return $this->_clearCache('smartblog_latest_news.tpl', $this->getCacheId());
-			}
+    {
+		return $this->_clearCache('smartblog_latest_news.tpl', $this->getCacheId());
+	}
+
 	public function hookactionsbdeletepost($params)
-            {
-                 return $this->DeleteCache();
-            }
+    {
+         return $this->DeleteCache();
+    }
+    
 	public function hookactionsbnewpost($params)
-            {
-                 return $this->DeleteCache();
-            }
+    {
+         return $this->DeleteCache();
+    }
+
 	public function hookactionsbupdatepost($params)
-            {
-                return $this->DeleteCache();
-            }
+    {
+        return $this->DeleteCache();
+    }
+
 	public function hookactionsbtogglepost($params)
-            {
-                return $this->DeleteCache();
-            }
+    {
+        return $this->DeleteCache();
+    }
 }
